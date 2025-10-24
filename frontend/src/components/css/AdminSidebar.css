@@ -1,0 +1,153 @@
+/* 🌿 Beautiful Modern Admin Sidebar */
+.admin-sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 40%, #f1fff6 100%);
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 🔹 Profile Section */
+.admin-profile {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 20px;
+  position: relative;
+}
+
+.admin-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #198754;
+  box-shadow: 0 4px 10px rgba(25, 135, 84, 0.25);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.admin-avatar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 14px rgba(25, 135, 84, 0.4);
+}
+
+.admin-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #212529;
+  margin-top: 12px;
+}
+
+.admin-email {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+.admin-profile-btn {
+  background: linear-gradient(90deg, #198754, #20c997);
+  color: #fff;
+  border: none;
+  padding: 6px 18px;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.35s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(25, 135, 84, 0.3);
+}
+
+.admin-profile-btn:hover {
+  background: linear-gradient(90deg, #157347, #0dcaf0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(13, 202, 240, 0.4);
+}
+
+/* 🔹 Sidebar Menu */
+.admin-menu {
+  margin-top: 10px;
+  flex-grow: 1;
+}
+
+.admin-menu .admin-link {
+  display: flex;
+  align-items: center;
+  color: #495057;
+  padding: 10px 14px;
+  margin: 5px 0;
+  border-radius: 10px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  transition: all 0.25s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Fancy hover animation using pseudo-element */
+.admin-menu .admin-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(25, 135, 84, 0.15), rgba(25, 135, 84, 0.05));
+  transition: all 0.4s ease;
+  z-index: 0;
+  border-radius: 10px;
+}
+
+.admin-menu .admin-link:hover::before {
+  left: 0;
+}
+
+.admin-menu .admin-link:hover {
+  color: #198754;
+  transform: translateX(6px);
+}
+
+.admin-menu .admin-link span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Active & Focus States */
+.admin-menu .admin-link.active,
+.admin-menu .admin-link:focus {
+  background: linear-gradient(90deg, #198754, #20c997);
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
+  transform: translateX(4px);
+}
+
+/* 🔹 Footer Section */
+.admin-footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #dee2e6;
+}
+
+.admin-version {
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: #198754;
+}
+
+.admin-credit {
+  font-size: 0.75rem;
+  margin: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.admin-credit:hover {
+  opacity: 1;
+}
