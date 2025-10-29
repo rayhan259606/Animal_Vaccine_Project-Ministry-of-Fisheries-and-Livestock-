@@ -28,6 +28,10 @@ public function financials(Request $request)
     $fiscalYear = $request->query('fiscal_year'); // যেমন: 2025-26
     $q = Disbursement::query();
 
+    // Default null value set to avoid undefined variable
+    $startDate = null;
+    $endDate = null;
+
     if ($fiscalYear) {
         // "2025-26" কে split করা
         [$startYear, $endYear] = explode('-', $fiscalYear);
@@ -44,14 +48,14 @@ public function financials(Request $request)
         'total_count'  => (int) $q->count(),
 
         'by_status' => Disbursement::selectRaw('status, COUNT(*) as count, SUM(amount) as total')
-            ->when($fiscalYear, function ($query) use ($startDate, $endDate) {
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('paid_on', [$startDate, $endDate]);
             })
             ->groupBy('status')
             ->get(),
 
         'by_month' => Disbursement::selectRaw('MONTH(paid_on) as month, SUM(amount) as total, COUNT(*) as count')
-            ->when($fiscalYear, function ($query) use ($startDate, $endDate) {
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('paid_on', [$startDate, $endDate]);
             })
             ->groupBy('month')
@@ -59,6 +63,5 @@ public function financials(Request $request)
             ->get(),
     ]);
 }
-
 
 }

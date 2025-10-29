@@ -29,7 +29,7 @@ class Disbursement extends Model
     // 🔹 বাজেটের সাথে সম্পর্ক (withTrashed ব্যবহার)
     public function budget()
     {
-        return $this->belongsTo(Budget::class, 'budget_id')->withTrashed();
+        return $this->belongsTo(Budget::class);
     }
 
     public function farmer()
@@ -42,7 +42,6 @@ class Disbursement extends Model
         return $this->belongsTo(Farm::class);
     }
 
-    // ✅ যিনি disburse করেছেন (Officer/Admin)
     public function disbursedByUser()
     {
         return $this->belongsTo(User::class, 'disbursed_by');

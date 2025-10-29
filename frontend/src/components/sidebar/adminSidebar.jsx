@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Nav } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { ListGroup, Button, Image } from "react-bootstrap";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../api/client";
+import "../../App.css";
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingFarmers, setPendingFarmers] = useState(0);
@@ -14,7 +16,7 @@ export default function AdminSidebar() {
     fetchPendingFarmers();
   }, []);
 
-  // 🔹 Fetch admin info
+  // ✅ Fetch Admin Info
   const fetchAdmin = async () => {
     try {
       const res = await api.get("/auth/me");
@@ -26,13 +28,25 @@ export default function AdminSidebar() {
     }
   };
 
-  // 🔹 Fetch pending farmer count
+  // ✅ Fetch Pending Farmer Count
   const fetchPendingFarmers = async () => {
     try {
       const res = await api.get("/farmers/pending/count");
       setPendingFarmers(res.data.count || 0);
     } catch (err) {
       console.error("Failed to fetch pending farmers count", err);
+    }
+  };
+
+  // ✅ Logout
+  const handleLogout = async () => {
+    if (!window.confirm("Are you sure you want to logout?")) return;
+    try {
+      await api.post("/auth/logout");
+      localStorage.clear();
+      navigate("/");
+    } catch (error) {
+      alert("Logout failed. Please try again.");
     }
   };
 
@@ -47,73 +61,111 @@ export default function AdminSidebar() {
     );
   }
 
+  const links = [
+    { to: "/admin/dashboard", label: "Dashboard", icon: "📊" },
+    { to: "/admin/profile", label: "Profile", icon: "👤" },
+    { to: "/admin/users", label: "Manage Users", icon: "👥" },
+    { to: "/admin/farmers", label: "Farmers", icon: "🌾" },
+    { to: "/admin/officers", label: "Officers", icon: "🧑‍💼" },
+    { to: "/admin/farms", label: "Farms", icon: "🏡" },
+    { to: "/admin/vaccines", label: "Vaccines", icon: "💉" },
+    { to: "/admin/budget", label: "Budget", icon: "💰" },
+    { to: "/admin/reports", label: "Reports", icon: "📈" },
+  ];
+
   return (
-    <aside className="admin-sidebar shadow-sm">
-      {/* 🔹 Profile Section */}
-      <div className="admin-profile text-center">
-        <img
-          src={
-            admin?.image
-              ? `http://localhost:8000/uploads/admins/${admin.image}`
-              : "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-          }
-          alt="Admin Avatar"
-          className="admin-avatar"
-        />
-        <h5 className="admin-name mt-2 mb-1">{admin?.name || "Admin User"}</h5>
-        <p className="admin-email">{admin?.email || "admin@system.com"}</p>
-        <button
-          className="admin-profile-btn"
-          onClick={() => navigate("/admin/profile")}
-        >
-          View Profile
-        </button>
+    <div
+      className="admin-sidebar d-flex flex-column justify-content-between shadow-lg"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        height: "100vh",
+        width: "300px",
+        background: "linear-gradient(180deg, #e8f5e9 0%, #ffffff 100%)",
+        borderRight: "1px solid #ddd",
+        overflowY: "auto",
+        zIndex: 1000,
+      }}
+    >
+      {/* === TOP SECTION === */}
+      <div className="p-5">
+        <h5 className="fw-bold mb-4 text-success text-center">
+          🧑‍💼 Admin Panel
+        </h5>
+
+        {/* Admin Info */}
+        {admin && (
+          <div className="text-center mb-4">
+            <Image
+              src={
+                admin.image
+                  ? `http://localhost:8000/uploads/admins/${admin.image}`
+                  : "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+              }
+              alt="Admin"
+              roundedCircle
+              style={{
+                width: "85px",
+                height: "85px",
+                objectFit: "cover",
+                border: "3px solid #28a745",
+              }}
+            />
+            <p className="mt-2 mb-0 fw-semibold text-secondary">
+              {admin.name || "Admin User"}
+            </p>
+            <small className="text-muted">{admin.email}</small>
+          </div>
+        )}
+
+        {/* === Menu Links === */}
+        <ListGroup variant="flush">
+          {links.map((link, index) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <ListGroup.Item
+                key={index}
+                onClick={() => navigate(link.to)}
+                className={`d-flex align-items-center fw-semibold py-2 sidebar-link ${
+                  isActive ? "bg-success text-white" : ""
+                }`}
+                style={{
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "0.3s",
+                  borderRadius: "5px",
+                }}
+              >
+                <span className="me-2 fs-5">{link.icon}</span>
+                {link.label}
+
+                {/* 🔸 Pending Farmer Badge */}
+                {link.to === "/admin/farmers" && pendingFarmers > 0 && (
+                  <span className="badge bg-danger ms-auto">
+                    {pendingFarmers}
+                  </span>
+                )}
+              </ListGroup.Item>
+            );
+          })}
+        </ListGroup>
       </div>
 
-      {/* 🔹 Menu */}
-      <Nav className="flex-column admin-menu mt-3">
-        <Nav.Link onClick={() => navigate("/admin/dashboard")} className="admin-link">
-          📊 Dashboard
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/profile")} className="admin-link">
-          👤 Profile
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/users")} className="admin-link">
-          👥 Manage Users
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/farmers")} className="admin-link d-flex justify-content-between align-items-center">
-          <span>🌾 Farmers</span>
-          {pendingFarmers > 0 && (
-            <span className="badge bg-danger">{pendingFarmers}</span>
-          )}
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/officers")} className="admin-link">
-          🧑‍💼 Officers
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/farms")} className="admin-link">
-          🏡 Farms
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/vaccines")} className="admin-link">
-          💉 Vaccines
-        </Nav.Link>
-
-        <Nav.Link onClick={() => navigate("/admin/reports")} className="admin-link">
-          📈 Reports
-        </Nav.Link>
-      </Nav>
-
-      {/* 🔹 Footer */}
-      <footer className="admin-footer text-center mt-auto">
-        <hr />
-        <p className="admin-version">v1.0.0</p>
-        <p className="admin-credit">© 2025 Vaccine System</p>
-      </footer>
-    </aside>
+      {/* === BOTTOM SECTION === */}
+      <div className="p-3 border-top mt-auto">
+        <Button
+          variant="outline-danger"
+          size="sm"
+          className="w-100 fw-semibold mb-2"
+          onClick={handleLogout}
+        >
+          🚪 Logout
+        </Button>
+        <small className="text-muted d-block text-center">
+          v1.0.0 | © 2025 Vaccine System
+        </small>
+      </div>
+    </div>
   );
 }

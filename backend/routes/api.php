@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\DisbursementController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\VaccineBatchController;
 
 Route::prefix('v1')->group(function () {
 
@@ -27,7 +28,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::delete('/auth/me', [AuthController::class, 'deleteMe']); // farmer self delete
 
-        // 🧑‍💼 Admin Only
+        // 🧑💼 Admin Only
         Route::middleware(['role:admin'])->group(function () {
             Route::post('/officers', [OfficerController::class, 'store']);
             Route::put('/officers/{officer}', [OfficerController::class, 'update']); // ✅ ADD THIS LINE
@@ -46,50 +47,88 @@ Route::prefix('v1')->group(function () {
 Route::get('/farmers/pending', [FarmerController::class, 'pending']);
 Route::get('/farmers/pending/count', [FarmerController::class, 'pendingCount']);
 Route::put('/farmers/{id}/approve', [FarmerController::class, 'approve']);
+
+// inside your admin/officer group
+Route::get('/vaccine-batches', [VaccineBatchController::class, 'index']);
+Route::post('/vaccine-batches', [VaccineBatchController::class, 'store']);
+Route::put('/vaccine-batches/{batch}', [VaccineBatchController::class, 'update']);
+Route::delete('/vaccine-batches/{batch}', [VaccineBatchController::class, 'destroy']);
+Route::put('/vaccine-batches/{id}/restore', [VaccineBatchController::class, 'restore']);
+
+//bugget part
+
+// Budget
+Route::get('/budgets', [BudgetController::class, 'index']);
+Route::post('/budgets', [BudgetController::class, 'store']);
+Route::put('/budgets/{budget}', [BudgetController::class, 'update']);
+Route::delete('/budgets/{budget}', [BudgetController::class, 'destroy']);
+Route::put('/budgets/{id}/restore', [BudgetController::class, 'restore']);
+Route::get('/budgets/summary', [BudgetController::class, 'summary']);
+
+// Disbursement
+Route::get('/disbursements', [DisbursementController::class, 'index']);
+Route::post('/disbursements', [DisbursementController::class, 'store']);
+Route::put('/disbursements/{disbursement}', [DisbursementController::class, 'update']);
+Route::delete('/disbursements/{disbursement}', [DisbursementController::class, 'destroy']);
+Route::put('/disbursements/{id}/restore', [DisbursementController::class, 'restore']);
+
+});
+
+        // 👩💼 Admin + Officer
+                    Route::middleware(['role:admin,officer'])->group(function () {
+                        Route::get('/officers', [OfficerController::class, 'index']);
+                        Route::post('/farms/{farm}/assign-officer', [OfficerController::class, 'assignFarm']);
+                        Route::post('/farms/{farm}/remove-officer', [OfficerController::class, 'removeFromFarm']);
+
+                        Route::get('/farmers', [FarmerController::class, 'index']);
+                        Route::post('/farmers', [FarmerController::class, 'store']);
+                        Route::get('/farmers/{farmer}', [FarmerController::class, 'show']);
+                        Route::put('/farmers/{farmer}', [FarmerController::class, 'update']);
+                        Route::delete('/farmers/{farmer}', [FarmerController::class, 'destroy']);
+
+                        Route::put('/farms/{id}/restore', [FarmController::class, 'restore']);
+                        Route::get('/farms/{id}/vaccination-summary', [FarmController::class, 'vaccinationSummary']);
+
+                        //vacinessss
+
+                        Route::get('/vaccines', [VaccineController::class, 'index']);
+                        Route::post('/vaccines', [VaccineController::class, 'store']);
+                        Route::get('/vaccines/{vaccine}', [VaccineController::class, 'show']);
+                        Route::put('/vaccines/{vaccine}', [VaccineController::class, 'update']);
+                        Route::delete('/vaccines/{vaccine}', [VaccineController::class, 'destroy']);
+                        Route::put('/vaccines/{id}/restore', [VaccineController::class, 'restore']);
+
+                        Route::post('/vaccines', [VaccineController::class, 'store']);
+                        Route::put('/vaccines/{vaccine}', [VaccineController::class, 'update']);
+                        Route::delete('/vaccines/{vaccine}', [VaccineController::class, 'destroy']);
+
+                        Route::post('/stock/batches', [StockController::class, 'storeBatch']);
+                        Route::put('/stock/batches/{batch}', [StockController::class, 'updateBatch']);
+                        Route::delete('/stock/batches/{batch}', [StockController::class, 'destroyBatch']);
+
+                        // ✅ Officers/Admin can update allocation status
+                        Route::put('/allocations/{allocation}/status', [VaccineAllocationController::class, 'updateStatus']);
+
+                        Route::post('/disbursements', [DisbursementController::class, 'store']);
+                        Route::put('/disbursements/{disbursement}', [DisbursementController::class, 'update']);
+                        Route::delete('/disbursements/{disbursement}', [DisbursementController::class, 'destroy']);
+
+                        //only officer
+
+    Route::get('/disbursements', [DisbursementController::class, 'index']);
+    Route::post('/disbursements', [DisbursementController::class, 'store']);
+    Route::put('/disbursements/{disbursement}', [DisbursementController::class, 'update']);
+    Route::delete('/disbursements/{disbursement}', [DisbursementController::class, 'destroy']);
+    Route::put('/disbursements/{id}/restore', [DisbursementController::class, 'restore']);
+
+    // ✅ Officer pending count route (for sidebar badge)
+    Route::get('/officer/disbursements/pending/count', [DisbursementController::class, 'pendingCount']);
+
+    // 👨‍🔬 Officer Profile Update (Self)
+Route::put('/officer/profile/update', [OfficerController::class, 'updateProfile']);
         });
 
-        // 👩‍💼 Admin + Officer
-        Route::middleware(['role:admin,officer'])->group(function () {
-            Route::get('/officers', [OfficerController::class, 'index']);
-            Route::post('/farms/{farm}/assign-officer', [OfficerController::class, 'assignFarm']);
-            Route::post('/farms/{farm}/remove-officer', [OfficerController::class, 'removeFromFarm']);
-
-            Route::get('/farmers', [FarmerController::class, 'index']);
-            Route::post('/farmers', [FarmerController::class, 'store']);
-            Route::get('/farmers/{farmer}', [FarmerController::class, 'show']);
-            Route::put('/farmers/{farmer}', [FarmerController::class, 'update']);
-            Route::delete('/farmers/{farmer}', [FarmerController::class, 'destroy']);
-
-            Route::put('/farms/{id}/restore', [FarmController::class, 'restore']);
-            Route::get('/farms/{id}/vaccination-summary', [FarmController::class, 'vaccinationSummary']);
-
-            //vacinessss
-
-            Route::get('/vaccines', [VaccineController::class, 'index']);
-            Route::post('/vaccines', [VaccineController::class, 'store']);
-            Route::get('/vaccines/{vaccine}', [VaccineController::class, 'show']);
-            Route::put('/vaccines/{vaccine}', [VaccineController::class, 'update']);
-            Route::delete('/vaccines/{vaccine}', [VaccineController::class, 'destroy']);
-            Route::put('/vaccines/{id}/restore', [VaccineController::class, 'restore']);
-
-
-            Route::post('/vaccines', [VaccineController::class, 'store']);
-            Route::put('/vaccines/{vaccine}', [VaccineController::class, 'update']);
-            Route::delete('/vaccines/{vaccine}', [VaccineController::class, 'destroy']);
-
-            Route::post('/stock/batches', [StockController::class, 'storeBatch']);
-            Route::put('/stock/batches/{batch}', [StockController::class, 'updateBatch']);
-            Route::delete('/stock/batches/{batch}', [StockController::class, 'destroyBatch']);
-
-            // ✅ Officers/Admin can update allocation status
-            Route::put('/allocations/{allocation}/status', [VaccineAllocationController::class, 'updateStatus']);
-
-            Route::post('/disbursements', [DisbursementController::class, 'store']);
-            Route::put('/disbursements/{disbursement}', [DisbursementController::class, 'update']);
-            Route::delete('/disbursements/{disbursement}', [DisbursementController::class, 'destroy']);
-        });
-
-        // 👨‍🌾 Farmer profile update
+        // 👨🌾 Farmer profile update
         Route::put('/farmer/profile/update', [FarmerController::class, 'updateProfile']);
 
         // 🌾 Common Routes (Farmer + Officer + Admin)
@@ -128,3 +167,5 @@ Route::put('/farmers/{id}/approve', [FarmerController::class, 'approve']);
         Route::get('/reports/financials', [ReportController::class, 'financials']);
     });
 });
+
+

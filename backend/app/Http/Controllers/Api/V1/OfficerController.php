@@ -101,4 +101,39 @@ class OfficerController extends Controller
         'officer' => $officer
     ]);
 }
+public function updateProfile(Request $request)
+{
+    $user = $request->user();
+
+    if ($user->role !== 'officer') {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'phone' => 'nullable|string|max:20',
+        'nid' => 'nullable|string|max:100',
+        'division' => 'nullable|string|max:100',
+        'district' => 'nullable|string|max:100',
+        'upazila' => 'nullable|string|max:100',
+        'union' => 'nullable|string|max:100',
+        'address_line' => 'nullable|string|max:255',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    // ✅ Image upload
+    if ($request->hasFile('image')) {
+        $filename = time() . '.' . $request->image->getClientOriginalExtension();
+        $request->image->move(public_path('uploads/officers'), $filename);
+        $validated['image'] = $filename;
+    }
+
+    $user->update($validated);
+
+    return response()->json([
+        'message' => '✅ Officer profile updated successfully!',
+        'user' => $user
+    ]);
+}
+
 }

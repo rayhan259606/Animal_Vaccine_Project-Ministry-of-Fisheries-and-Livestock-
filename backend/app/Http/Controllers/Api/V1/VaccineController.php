@@ -12,23 +12,20 @@ class VaccineController extends Controller
     /**
      * List vaccines (with search + deleted filter)
      */
-    public function index(Request $request)
-    {
-        $query = Vaccine::with('batches')->latest();
+public function index(Request $request)
+{
+    $query = Vaccine::withTrashed()->with('batches')->latest();
 
-        if ($request->boolean('show_deleted')) {
-            $query->onlyTrashed();
-        }
-
-        if ($search = $request->get('search')) {
-            $query->where('name', 'like', "%$search%")
-                  ->orWhere('manufacturer', 'like', "%$search%");
-        }
-
-        $vaccines = $query->paginate(15);
-
-        return response()->json($vaccines);
+    if ($search = $request->get('search')) {
+        $query->where('name', 'like', "%$search%")
+              ->orWhere('manufacturer', 'like', "%$search%");
     }
+
+    $vaccines = $query->paginate(15);
+
+    return response()->json($vaccines);
+}
+
 
     /**
      * Store new vaccine

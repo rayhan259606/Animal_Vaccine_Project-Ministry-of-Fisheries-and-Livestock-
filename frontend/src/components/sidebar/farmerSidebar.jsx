@@ -23,6 +23,7 @@ export default function FarmerSidebar() {
   };
 
   const handleLogout = async () => {
+    if (!window.confirm("Are you sure you want to logout?")) return;
     try {
       await api.post("/auth/logout");
       localStorage.clear();
@@ -65,13 +66,21 @@ export default function FarmerSidebar() {
 
   return (
     <div
-      className="farmer-sidebar border-end d-flex flex-column justify-content-between p-3 shadow-lg"
+      className="farmer-sidebar d-flex flex-column justify-content-between shadow-lg"
       style={{
-        width: "260px",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        height: "100vh",
+        width: "300px",
         background: "linear-gradient(180deg, #e8f5e9 0%, #ffffff 100%)",
+        borderRight: "1px solid #ddd",
+        overflowY: "auto",
+        zIndex: 1000,
       }}
     >
-      <div>
+      {/* === TOP SECTION === */}
+      <div className="p-5">
         <h5 className="fw-bold mb-4 text-success text-center">
           🌾 Farmer Dashboard
         </h5>
@@ -121,8 +130,13 @@ export default function FarmerSidebar() {
                 as={Link}
                 to={link.to}
                 className={`sidebar-link d-flex align-items-center rounded fw-semibold py-2 ${
-                  isActive ? "active-link" : ""
+                  isActive ? "active-link bg-success text-white" : ""
                 }`}
+                style={{
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "0.2s",
+                }}
               >
                 <span className="me-2 fs-5">{link.icon}</span>
                 {link.label}
@@ -134,13 +148,14 @@ export default function FarmerSidebar() {
         {/* যদি pending হয়, user কে একটা warning দেখাও */}
         {farmer?.farmer_profile?.status === "pending" && (
           <div className="alert alert-warning mt-3 p-2 text-center small">
-            ⚠️ Your account is pending approval.  
+            ⚠️ Your account is pending approval.
             <br /> Only dashboard access is available.
           </div>
         )}
       </div>
 
-      <div className="mt-auto">
+      {/* === BOTTOM SECTION === */}
+      <div className="p-3 border-top mt-auto">
         <Button
           variant="outline-success"
           size="sm"

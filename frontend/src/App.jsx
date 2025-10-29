@@ -31,7 +31,16 @@ import OfficerPage from "./pages/admin/OfficerPage";
 import FarmerPage from "./pages/admin/FarmerPage";
 import AdminFarmPage from "./pages/admin/AdminFarmPage";
 import AdminVaccinePage from "./pages/admin/AdminVaccinePage";
+import  AdminBudgetPage  from "./pages/admin/AdminBudgetPage";
+import AdminReportPage from "./pages/admin/AdminReportPage";
 
+
+
+// officer pagess
+
+import OfficerProfile from "./pages/officer/OfficerProfile";
+import OfficerFarms from "./pages/officer/OfficerFarms";
+import OfficerFarmDetails from "./pages/officer/OfficerFarmDetails"; //farmer all detis assingn
 
 // 🔹 Public layout for Header + nested routes
 function PublicLayout() {
@@ -58,7 +67,7 @@ export default function App() {
         {/* 🔐 Protected Dashboard routes */}
         <Route element={<Layout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/officerdashboard" element={<OfficerDashboard />} />
+          <Route path="/officer/dashboard" element={<OfficerDashboard />} />
           <Route path="/farmerdashboard" element={<FarmerDashboard />} />
 
 
@@ -81,6 +90,13 @@ export default function App() {
           <Route path="/admin/farmers" element={<FarmerPage/>} />
           <Route path="/admin/farms" element={<AdminFarmPage/>} />
           <Route path="/admin/vaccines" element={<AdminVaccinePage/>} />
+          <Route path="/admin/budget" element={<AdminBudgetPage/>} />
+          <Route path="/admin/reports" element={<AdminReportPage/>} /> 
+
+          {/* officer all pagess */} 
+        <Route path="/officer/profile" element={<OfficerProfile/>} /> 
+        <Route path="/officer/farms" element={<OfficerFarms />} />
+        <Route path="/officer/farms/:id" element={<OfficerFarmDetails />} />
 
         </Route>
       </Routes>

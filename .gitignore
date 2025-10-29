@@ -1,0 +1,6 @@
+*.mp4
+*.zip
+*.mov
+*.avi
+/vendor
+/node_modules

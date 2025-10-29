@@ -24,7 +24,7 @@ export default function Login() {
       if (res.data.role === "admin") {
         navigate("/admin/dashboard");
       } else if (res.data.role === "officer") {
-        navigate("/officerdashboard");
+        navigate("/officer/dashboard");
       } else if (res.data.role === "farmer") {
         navigate("/farmerdashboard");
       } else {

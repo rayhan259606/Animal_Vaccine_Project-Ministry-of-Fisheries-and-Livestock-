@@ -37,9 +37,9 @@ class FarmController extends Controller
                 $q->where('user_id', $user->id);
             });
         } elseif ($user->role === 'officer') {
-            $query->whereHas('officers', function ($q) use ($user) {
-                $q->where('officer_id', $user->id);
-            });
+    $query->whereHas('officers', function ($q) use ($user) {
+        $q->where('farm_officer.user_id', $user->id);
+    });
         }
 
         $farms = $query->latest()->paginate(20);

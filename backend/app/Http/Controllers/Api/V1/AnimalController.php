@@ -23,9 +23,9 @@ class AnimalController extends Controller
 
         // 🔹 Officer -> Assigned farms এর animal
         elseif ($user->role === 'officer') {
-            $q->whereHas('farm.officers', function ($query) use ($user) {
-                $query->where('officer_id', $user->id);
-            });
+    $q->whereHas('farm.officers', function ($query) use ($user) {
+        $query->where('farm_officer.user_id', $user->id);
+    });
         }
 
         // Admin -> সব animal

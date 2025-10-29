@@ -25,6 +25,9 @@ class Farm extends Model
         'status',
     ];
 
+    /**
+     * Auto-generate unique registration number
+     */
     protected static function booted()
     {
         static::creating(function ($farm) {
@@ -36,22 +39,32 @@ class Farm extends Model
         });
     }
 
+    /**
+     * Relationships
+     */
+
+    // 🧑‍🌾 Each farm belongs to one farmer
     public function farmer()
     {
         return $this->belongsTo(Farmer::class);
     }
 
+    // 🐄 A farm has many animals
     public function animals()
     {
         return $this->hasMany(Animal::class);
     }
 
+    // 👨‍🔬 Officers assigned to this farm
+    // ✅ FIXED: user_id used instead of officer_id
     public function officers()
     {
-        return $this->belongsToMany(User::class, 'farm_officer')->withTimestamps();
+        return $this->belongsToMany(User::class, 'farm_officer', 'farm_id', 'user_id')
+            ->withTimestamps()
+            ->withTrashed();
     }
 
-    // 🧩 Vaccination relation (via animals)
+    // 💉 All vaccinations done on animals of this farm
     public function vaccinations()
     {
         return $this->hasManyThrough(Vaccination::class, Animal::class);

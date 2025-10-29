@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Container, Spinner } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
 import { Outlet, useNavigate } from "react-router-dom";
 import api from "../api/client";
 
-// সব Navbar এবং Sidebar ইমপোর্ট করো
+// 🔹 সব Navbar এবং Sidebar ইমপোর্ট করো
 import AdminNavbar from "../components/navbar/adminNavbar";
 import OfficerNavbar from "../components/navbar/officerNavbar";
 import FarmerNavbar from "../components/navbar/farmerNavbar";
@@ -53,17 +53,56 @@ export default function Layout() {
     return <FarmerSidebar />;
   };
 
-  return (
-    <>
-      {renderNavbar()}
-      <Container fluid className="d-flex">
-        {renderSidebar()}
+  // 🔹 Sidebar Width
+  const sidebarWidth = "260px";
+  const navbarHeight = "70px"; // Approx Bootstrap Navbar Height
 
-        {/* 📌 এখানেই পেজের মূল content লোড হবে */}
-        <div className="flex-grow-1 p-4" style={{ backgroundColor: "#f8f9fa" }}>
+  return (
+    <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+      {/* ✅ Fixed Navbar */}
+      <div style={{ position: "fixed", top: 0, left: 0, width: "100%", zIndex: 1050 }}>
+        {renderNavbar()}
+      </div>
+
+      {/* ✅ Main Layout Wrapper */}
+      <div
+        className="d-flex"
+        style={{
+          paddingTop: navbarHeight, // Navbar নিচে জায়গা রাখবে
+        }}
+      >
+        {/* ✅ Fixed Sidebar */}
+        <div
+          style={{
+            position: "fixed",
+            top: navbarHeight,
+            left: 0,
+            height: `calc(100vh - ${navbarHeight})`,
+            width: sidebarWidth,
+            background: "#fff",
+            borderRight: "1px solid #ddd",
+            overflowY: "auto",
+            zIndex: 1040,
+          }}
+        >
+          {renderSidebar()}
+        </div>
+
+        {/* ✅ Main Content Area */}
+<div
+  className="flex-grow-1 p-4"
+  style={{
+    marginLeft: `calc(${sidebarWidth} + 20px)`, // ⬅️ Sidebar থেকে 20px gap
+    marginTop: 0,
+    minHeight: "100vh",
+    transition: "margin 0.3s ease",
+    backgroundColor: "#f8f9fa",
+  }}
+>
+
           <Outlet />
         </div>
-      </Container>
-    </>
+      </div>
+    </div>
   );
 }

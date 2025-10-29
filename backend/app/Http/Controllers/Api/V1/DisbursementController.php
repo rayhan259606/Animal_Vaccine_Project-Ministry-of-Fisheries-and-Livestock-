@@ -16,25 +16,24 @@ class DisbursementController extends Controller
     {
         $user = auth()->user();
 
-        // include budget (withTrashed to avoid null)
         $q = Disbursement::with(['budget', 'farmer.user', 'farm', 'disbursedByUser'])
             ->latest();
 
-        // 🔹 Farmer -> নিজের disbursement
+        // 👩‍🌾 Farmer -> নিজের disbursement
         if ($user->role === 'farmer') {
             $q->whereHas('farmer', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             });
         }
 
-        // 🔹 Officer -> Assigned farms only
+        // 👨‍🔬 Officer -> Assigned farms only
         elseif ($user->role === 'officer') {
             $q->whereHas('farm.officers', function ($query) use ($user) {
-                $query->where('officer_id', $user->id);
-            });
+    $query->where('farm_officer.user_id', $user->id);
+});
         }
 
-        // 🔹 Optional: filter by fiscal year
+        // Optional: Filter by fiscal year
         if ($year = $request->query('fiscal_year')) {
             $q->whereHas('budget', fn($qq) => $qq->where('fiscal_year', $year));
         }
@@ -49,9 +48,10 @@ class DisbursementController extends Controller
     {
         $data = $request->validated();
         $data['disbursed_by'] = $request->user()->id;
-        $data['status'] = 'paid';
+        $data['status'] = $data['status'] ?? 'paid';
 
         $disbursement = Disbursement::create($data);
+
         return response()->json(
             $disbursement->load(['budget', 'farm', 'disbursedByUser']),
             201
@@ -63,7 +63,7 @@ class DisbursementController extends Controller
      */
     public function update(Request $request, Disbursement $disbursement)
     {
-        $request->validate([
+        $validated = $request->validate([
             'amount' => 'nullable|integer|min:0',
             'purpose' => 'nullable|string|max:255',
             'paid_on' => 'nullable|date',
@@ -71,7 +71,7 @@ class DisbursementController extends Controller
             'reference_no' => 'nullable|string|max:100',
         ]);
 
-        $disbursement->update($request->all());
+        $disbursement->update($validated);
 
         return response()->json(
             $disbursement->load(['budget', 'farm', 'disbursedByUser'])
@@ -85,5 +85,30 @@ class DisbursementController extends Controller
     {
         $disbursement->delete();
         return response()->json(['message' => '🗑️ Deleted successfully']);
+    }
+
+    /**
+     * ✅ Restore soft-deleted disbursement
+     */
+    public function restore($id)
+    {
+        $disb = Disbursement::withTrashed()->findOrFail($id);
+        $disb->restore();
+
+        return response()->json(['message' => '♻️ Disbursement restored successfully']);
+    }
+
+    /**
+     * ✅ Officer pending disbursement count (for sidebar badge)
+     */
+    public function pendingCount(Request $request)
+    {
+        $user = $request->user();
+
+        $count = Disbursement::whereHas('farm.officers', function ($q) use ($user) {
+            $q->where('farm_officer.user_id', $user->id);
+        })->where('status', '!=', 'paid')->count();
+
+        return response()->json(['count' => $count]);
     }
 }
