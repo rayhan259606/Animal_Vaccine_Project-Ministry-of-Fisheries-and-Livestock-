@@ -126,6 +126,9 @@ Route::put('/disbursements/{id}/restore', [DisbursementController::class, 'resto
 
     // 👨‍🔬 Officer Profile Update (Self)
 Route::put('/officer/profile/update', [OfficerController::class, 'updateProfile']);
+
+Route::get('/farms/{id}/vaccination-summary', [FarmController::class, 'indivisual_vaccinationSummary']);
+
         });
 
         // 👨🌾 Farmer profile update

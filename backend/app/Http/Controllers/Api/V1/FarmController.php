@@ -172,4 +172,23 @@ class FarmController extends Controller
             'last_vaccination_date' => $lastVaccination ? $lastVaccination->date_administered : null,
         ];
     }
+
+    public function  indivisual_vaccinationSummary($id)
+{
+    $farm = Farm::with('animals.vaccinations')->findOrFail($id);
+
+    $totalAnimals = $farm->animals->count();
+    $totalVaccinations = $farm->animals->flatMap->vaccinations->count();
+    $vaccinatedAnimals = $farm->animals->filter(fn($a) => $a->vaccinations->count() > 0)->count();
+    $pending = $totalAnimals - $vaccinatedAnimals;
+
+    return response()->json([
+        'farm_id' => $farm->id,
+        'total_animals' => $totalAnimals,
+        'total_vaccinations' => $totalVaccinations,
+        'vaccinated_animals' => $vaccinatedAnimals,
+        'pending_vaccinations' => $pending,
+    ]);
+}
+
 }

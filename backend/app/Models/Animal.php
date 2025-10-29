@@ -25,4 +25,6 @@ class Animal extends Model
     {
         return $this->hasMany(Vaccination::class);
     }
+
+    
 }

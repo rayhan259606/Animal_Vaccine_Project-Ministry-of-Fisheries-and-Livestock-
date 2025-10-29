@@ -69,4 +69,6 @@ class Farm extends Model
     {
         return $this->hasManyThrough(Vaccination::class, Animal::class);
     }
+
+    
 }

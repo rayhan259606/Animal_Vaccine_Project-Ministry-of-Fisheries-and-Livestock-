@@ -15,17 +15,30 @@ class FarmerController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $q = Farmer::with('user')->latest();
+
+        // ✅ with() এ farms যোগ করা হয়েছে যাতে farm count আসে
+        $q = Farmer::with(['user', 'farms'])->latest();
 
         if ($user->role === 'farmer') {
+            // 👩‍🌾 Farmer → নিজের data দেখবে
             $q->where('user_id', $user->id);
-        } elseif ($user->role === 'officer') {
+        } 
+        elseif ($user->role === 'officer') {
+            // 👨‍🔬 Officer → Assigned farm-এর farmers দেখবে
             $q->whereHas('farms.officers', function ($query) use ($user) {
-                $query->where('officer_id', $user->id);
+                // ✅ officer_id এর জায়গায় সঠিক pivot কলাম farm_officer.user_id
+                $query->where('farm_officer.user_id', $user->id);
             });
         }
 
-        return response()->json($q->paginate(20));
+        // ✅ Optional: প্রতিটি farmer এর সাথে farm count যোগ করা হচ্ছে
+        $farmers = $q->paginate(20);
+        $farmers->getCollection()->transform(function ($farmer) {
+            $farmer->farm_count = $farmer->farms->count();
+            return $farmer;
+        });
+
+        return response()->json($farmers);
     }
 
     // 🔹 Create farmer (Admin/Officer)
@@ -87,88 +100,84 @@ class FarmerController extends Controller
         return response()->json(['message' => 'Deleted successfully', 'data' => $farm]);
     }
 
-    // ✅ NEW: Farmer নিজে নিজের Profile Update করতে পারবে
-   public function updateProfile(Request $request)
-{
-    $user = $request->user();
+    // ✅ Farmer নিজে নিজের Profile Update করতে পারবে
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
 
-    $request->validate([
-        'name' => 'nullable|string|max:255',
-        'phone' => 'nullable|string|max:20',
-        'nid' => 'nullable|string|max:50',
-        'address_line' => 'nullable|string|max:255',
-        'division' => 'nullable|string|max:100',
-        'district' => 'nullable|string|max:100',
-        'upazila' => 'nullable|string|max:100',
-        'union' => 'nullable|string|max:100',
-        'village' => 'nullable|string|max:100',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ]);
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'nid' => 'nullable|string|max:50',
+            'address_line' => 'nullable|string|max:255',
+            'division' => 'nullable|string|max:100',
+            'district' => 'nullable|string|max:100',
+            'upazila' => 'nullable|string|max:100',
+            'union' => 'nullable|string|max:100',
+            'village' => 'nullable|string|max:100',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
-    // 🔹 যদি নতুন ছবি আসে, তাহলে upload করবে
-    if ($request->hasFile('image')) {
-        $imageName = time() . '.' . $request->image->extension();
-        $request->image->move(public_path('uploads/users'), $imageName);
-        $user->image = $imageName; // Assign image value
+        if ($request->hasFile('image')) {
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('uploads/users'), $imageName);
+            $user->image = $imageName;
+        }
+
+        $user->fill($request->only([
+            'name',
+            'phone',
+            'nid',
+            'address_line',
+            'division',
+            'district',
+            'upazila',
+            'union',
+            'village',
+        ]));
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $user,
+        ]);
     }
 
-    // 🔹 Fill and Save (instead of update)
-    $user->fill($request->only([
-        'name',
-        'phone',
-        'nid',
-        'address_line',
-        'division',
-        'district',
-        'upazila',
-        'union',
-        'village',
-    ]));
+    // 🔹 Pending Farmers List
+    public function pending()
+    {
+        $farmers = Farmer::with('user')
+            ->where('is_approved', false)
+            ->where('status', 'pending')
+            ->latest()
+            ->paginate(20);
 
-    $user->save(); // ✅ এখন data নিশ্চিতভাবে save হবে
+        return response()->json($farmers);
+    }
 
-    return response()->json([
-        'message' => 'Profile updated successfully',
-        'user' => $user,
-    ]);
-}
+    // 🔹 Pending Farmer Count (for Sidebar)
+    public function pendingCount()
+    {
+        $count = Farmer::where('is_approved', false)
+            ->where('status', 'pending')
+            ->count();
 
-// 🔹 Pending Farmers List
-public function pending()
-{
-    $farmers = Farmer::with('user')
-        ->where('is_approved', false)
-        ->where('status', 'pending')
-        ->latest()
-        ->paginate(20);
+        return response()->json(['count' => $count]);
+    }
 
-    return response()->json($farmers);
-}
+    // 🔹 Approve a Farmer
+    public function approve($id)
+    {
+        $farmer = Farmer::findOrFail($id);
+        $farmer->update([
+            'is_approved' => true,
+            'status' => 'active',
+        ]);
 
-// 🔹 Pending Farmer Count (for Sidebar)
-public function pendingCount()
-{
-    $count = Farmer::where('is_approved', false)
-        ->where('status', 'pending')
-        ->count();
-
-    return response()->json(['count' => $count]);
-}
-
-// 🔹 Approve a Farmer
-public function approve($id)
-{
-    $farmer = Farmer::findOrFail($id);
-    $farmer->update([
-        'is_approved' => true,
-        'status' => 'active',
-    ]);
-
-    return response()->json([
-        'message' => 'Farmer approved successfully!',
-        'farmer' => $farmer,
-    ]);
-}
-
-
+        return response()->json([
+            'message' => 'Farmer approved successfully!',
+            'farmer' => $farmer,
+        ]);
+    }
 }
