@@ -99,8 +99,8 @@ export default function FarmerProfile() {
                 <Image
                   src={
                     user?.image
-                      ? `http://localhost:8000/uploads/farmers/${user.image}`
-                      : "https://cdn-icons-png.flaticon.com/512/847/847969.png"
+                      ? `http://127.0.0.1:8000/uploads/farmers/${user.image}`
+      : "https://cdn-icons-png.flaticon.com/512/847/847969.png"
                   }
                   roundedCircle
                   style={{

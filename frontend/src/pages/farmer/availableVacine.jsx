@@ -65,20 +65,25 @@ export default function FarmerVaccines() {
   };
 
   // ✅ Quantity check function (server-side validation)
-  const checkQuantityAvailability = async (vaccineId, qty) => {
-    try {
-      const res = await api.get(`/vaccines/${vaccineId}`);
-      const availableQty = res.data.quantity || 0; 
-      if (qty > availableQty) {
-        setQuantityError(`❌ Only ${availableQty} doses available`);
-      } else {
-        setQuantityError("");
-      }
-    } catch (err) {
-      console.error("Stock check failed:", err);
-      setQuantityError("⚠️ Unable to verify stock");
+const checkQuantityAvailability = async (vaccineId, qty) => {
+  try {
+    const res = await api.get(`/vaccines/${vaccineId}`);
+    const availableQty =
+      res.data.total_stock ||
+      res.data.vaccine?.total_stock ||
+      0;
+
+    if (qty > availableQty) {
+      setQuantityError(`❌ Only ${availableQty} doses available`);
+    } else {
+      setQuantityError("");
     }
-  };
+  } catch (err) {
+    console.error("Stock check failed:", err);
+    setQuantityError("⚠️ Unable to verify stock");
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

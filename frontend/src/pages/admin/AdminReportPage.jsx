@@ -12,7 +12,7 @@ export default function AdminReportPage() {
     try {
       setLoading(true);
       const [res1, res2] = await Promise.all([
-        api.get("/reports/summary"),
+        api.get("/reports/summary1"),
         api.get("/reports/financials"),
       ]);
       setSummary(res1.data);

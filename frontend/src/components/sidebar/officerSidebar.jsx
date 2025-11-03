@@ -10,35 +10,30 @@ export default function OfficerSidebar() {
   const [officer, setOfficer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingDisbursements, setPendingDisbursements] = useState(0);
+  const [pendingAllocations, setPendingAllocations] = useState(0);
 
   useEffect(() => {
-    fetchOfficer();
-    fetchPendingDisbursements();
-  }, []);
+    // Combine all fetching logic in a single useEffect to optimize performance
+    const fetchData = async () => {
+      try {
+        const officerRes = await api.get("/auth/me");
+        setOfficer(officerRes.data);
+        
+        const disbursementsRes = await api.get("/officer/disbursements/pending/count");
+        setPendingDisbursements(disbursementsRes.data.count || 0);
 
-  // ✅ Fetch Officer Info
-  const fetchOfficer = async () => {
-    try {
-      const res = await api.get("/auth/me");
-      setOfficer(res.data);
-    } catch (err) {
-      console.error("Failed to load officer info", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const allocationsRes = await api.get("/officer/allocations/pending/count");
+        setPendingAllocations(allocationsRes.data.count || 0);
+      } catch (err) {
+        console.error("Failed to load data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // ✅ Fetch Pending Disbursements Count (optional)
-  const fetchPendingDisbursements = async () => {
-    try {
-      const res = await api.get("/officer/disbursements/pending/count");
-      setPendingDisbursements(res.data.count || 0);
-    } catch (err) {
-      console.error("Failed to fetch pending disbursements count", err);
-    }
-  };
+    fetchData();
+  }, []); // The empty array ensures this runs only once when the component mounts
 
-  // ✅ Logout
   const handleLogout = async () => {
     if (!window.confirm("Are you sure you want to logout?")) return;
     try {
@@ -54,14 +49,17 @@ export default function OfficerSidebar() {
     return (
       <div
         className="d-flex justify-content-center align-items-center bg-white"
-        style={{ height: "100vh", width: "260px" }}
+        style={{
+          height: "100vh",
+          width: "260px",
+        }}
       >
         <div className="spinner-border text-success" role="status"></div>
       </div>
     );
   }
 
-  // ✅ Officer Menu Links
+  // Officer Menu Links with dynamic badges
   const links = [
     { to: "/officer/dashboard", label: "Dashboard", icon: "📊" },
     { to: "/officer/profile", label: "Profile", icon: "👤" },
@@ -69,9 +67,18 @@ export default function OfficerSidebar() {
     { to: "/officer/farmers", label: "Farmers", icon: "🌾" },
     { to: "/officer/animals", label: "Animals", icon: "🐄" },
     { to: "/officer/vaccines", label: "Vaccines", icon: "💉" },
-    { to: "/officer/allocations", label: "Allocations", icon: "📦" },
-    { to: "/officer/vaccinations", label: "Vaccinations", icon: "🧪" },
-    { to: "/officer/disbursements", label: "Disbursements", icon: "💰" },
+    {
+      to: "/officer/allocations",
+      label: "Allocations",
+      icon: "📦",
+      badge: pendingAllocations,
+    },
+    {
+      to: "/officer/disbursements",
+      label: "Disbursements",
+      icon: "💰",
+      badge: pendingDisbursements,
+    },
     { to: "/officer/reports", label: "Reports", icon: "📈" },
   ];
 
@@ -92,7 +99,10 @@ export default function OfficerSidebar() {
     >
       {/* === TOP SECTION === */}
       <div className="p-5">
-        <h5 className="fw-bold mb-4 text-primary text-center">
+        <h5
+          className="fw-bold mb-4 text-primary text-center"
+          style={{ fontWeight: "700", fontSize: "1.5rem" }}
+        >
           👨‍🔬 Officer Panel
         </h5>
 
@@ -137,18 +147,27 @@ export default function OfficerSidebar() {
                   cursor: "pointer",
                   transition: "0.3s",
                   borderRadius: "5px",
+                  padding: "10px 15px",
+                  fontSize: "1rem",
                 }}
               >
-                <span className="me-2 fs-5">{link.icon}</span>
+                <span className="me-2 fs-5" style={{ fontSize: "20px" }}>
+                  {link.icon}
+                </span>
                 {link.label}
-
-                {/* 🔸 Pending Disbursement Badge */}
-                {link.to === "/officer/disbursements" &&
-                  pendingDisbursements > 0 && (
-                    <span className="badge bg-danger ms-auto">
-                      {pendingDisbursements}
-                    </span>
-                  )}
+                {/* Show Pending Badge */}
+                {link.badge > 0 && (
+                  <span
+                    className="badge bg-danger ms-auto"
+                    style={{
+                      borderRadius: "50%",
+                      fontSize: "0.75rem",
+                      padding: "5px 9px",
+                    }}
+                  >
+                    {link.badge}
+                  </span>
+                )}
               </ListGroup.Item>
             );
           })}
@@ -156,19 +175,34 @@ export default function OfficerSidebar() {
       </div>
 
       {/* === BOTTOM SECTION === */}
-      <div className="p-3 border-top mt-auto">
+      <div
+        className="p-3 border-top mt-auto"
+        style={{
+          padding: "1rem",
+          borderTop: "1px solid #ddd",
+          marginTop: "auto",
+          textAlign: "center",
+        }}
+      >
         <Button
           variant="outline-danger"
           size="sm"
           className="w-100 fw-semibold mb-2"
           onClick={handleLogout}
+          style={{
+            fontWeight: "600",
+            fontSize: "0.875rem",
+            padding: "0.5rem",
+            borderRadius: "5px",
+          }}
         >
           🚪 Logout
         </Button>
-        <small className="text-muted d-block text-center">
+        <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
           v1.0.0 | © 2025 Vaccine System
         </small>
       </div>
     </div>
   );
 }
+

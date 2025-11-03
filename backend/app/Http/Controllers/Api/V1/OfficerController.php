@@ -122,13 +122,14 @@ public function updateProfile(Request $request)
     ]);
 
     // ✅ Image upload
-    if ($request->hasFile('image')) {
-        $filename = time() . '.' . $request->image->getClientOriginalExtension();
-        $request->image->move(public_path('uploads/officers'), $filename);
-        $validated['image'] = $filename;
-    }
+  
+if ($request->hasFile('image')) {
+    $imageName = time() . '.' . $request->image->extension();
+    $request->image->move(public_path('uploads/officers'), $imageName);
+    $validated['image'] = $imageName; // add this line
+}
 
-    $user->update($validated);
+$user->update($validated);
 
     return response()->json([
         'message' => '✅ Officer profile updated successfully!',

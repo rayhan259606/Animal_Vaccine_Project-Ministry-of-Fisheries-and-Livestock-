@@ -118,11 +118,11 @@ class FarmerController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->move(public_path('uploads/users'), $imageName);
-            $user->image = $imageName;
-        }
+      if ($request->hasFile('image')) {
+    $imageName = time() . '.' . $request->image->extension();
+    $request->image->move(public_path('uploads/farmers'), $imageName);
+    $user->image = $imageName;
+}
 
         $user->fill($request->only([
             'name',

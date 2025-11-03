@@ -11,9 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class BudgetController extends Controller
 {
-    // ✅ Budget list + summary
-    public function index(Request $request)
-    {
+
+public function index(Request $request)
+{
+    try {
         $query = Budget::withTrashed()->latest();
 
         if ($search = $request->get('search')) {
@@ -22,21 +23,62 @@ class BudgetController extends Controller
 
         $budgets = $query->paginate(10);
 
+        // 🔹 সর্বশেষ বাজেট (যদি থাকে)
+        $latestBudget = Budget::latest()->first();
+
+        if (!$latestBudget) {
+            return response()->json([
+                'data' => [
+                    'data' => [],
+                    'current_page' => 1,
+                    'last_page' => 1,
+                ],
+                'summary' => [
+                    'budget_id' => null,
+                    'fiscal_year' => 'N/A',
+                    'total_budget' => 0,
+                    'total_procurement' => 0,
+                    'total_disbursement' => 0,
+                    'remaining' => 0,
+                ],
+            ]);
+        }
+
+        // ✅ এখন budget_id ছাড়াই হিসাব করব (পুরো সিস্টেমে প্রভাব ফেলবে না)
+        $totalProcurement = \App\Models\VaccineBatch::sum(DB::raw('quantity * cost_per_unit'));
+        $totalDisbursement = \App\Models\Disbursement::sum('amount');
+
+        $totalBudget = (int) $latestBudget->total_amount;
+        $remaining = $totalBudget - ($totalProcurement + $totalDisbursement);
+
         $summary = [
-            'total_budget' => Budget::sum('total_amount'),
-            'total_procurement' => VaccineBatch::sum(DB::raw('quantity * cost_per_unit')),
-            'total_disbursement' => Disbursement::sum('amount'),
+            'budget_id' => $latestBudget->id,
+            'fiscal_year' => $latestBudget->fiscal_year,
+            'total_budget' => $totalBudget,
+            'total_procurement' => (int) $totalProcurement,
+            'total_disbursement' => (int) $totalDisbursement,
+            'remaining' => max(0, (int) $remaining),
         ];
 
-        $summary['remaining'] =
-            $summary['total_budget'] -
-            ($summary['total_procurement'] + $summary['total_disbursement']);
-
         return response()->json([
-            'data' => $budgets,
+            'data' => [
+                'data' => $budgets->items(),
+                'current_page' => $budgets->currentPage(),
+                'last_page' => $budgets->lastPage(),
+            ],
             'summary' => $summary,
-        ]);
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Server Error: ' . $e->getMessage(),
+        ], 500);
     }
+}
+
+
+
 
     // ✅ Create new budget
     public function store(Request $request)
@@ -139,18 +181,30 @@ class BudgetController extends Controller
     }
 
     // ✅ Budget utilization summary
-    public function summary()
-    {
+   public function summary()
+{
+    try {
+        $budget = \App\Models\Budget::latest()->first(); // সর্বশেষ বাজেট নাও
+
         $data = [
-            'total_budget' => Budget::sum('total_amount'),
-            'total_procurement' => VaccineBatch::sum(DB::raw('quantity * cost_per_unit')),
-            'total_disbursement' => Disbursement::sum('amount'),
+            'budget_id' => $budget?->id, // ✅ এই লাইন যোগ করো
+            'total_budget' => (int) \App\Models\Budget::sum('total_amount'),
+            'total_procurement' => (int) \App\Models\VaccineBatch::sum(\DB::raw('quantity * cost_per_unit')),
+            'total_disbursement' => (int) \App\Models\Disbursement::sum('amount'),
         ];
 
-        $data['remaining'] =
-            $data['total_budget'] -
-            ($data['total_procurement'] + $data['total_disbursement']);
+        $data['remaining'] = $data['total_budget'] - ($data['total_procurement'] + $data['total_disbursement']);
 
-        return response()->json($data);
+        return response()->json($data, 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error generating budget summary',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
+
 }

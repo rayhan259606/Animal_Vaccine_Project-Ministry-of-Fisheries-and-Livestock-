@@ -104,19 +104,36 @@ class VaccineAllocationController extends Controller
     /**
      * ✅ Update Status (Officer/Admin only)
      */
-    public function updateStatus(Request $request, VaccineAllocation $allocation)
-    {
-        $request->validate([
-            'status' => 'required|in:pending,allocated,issued,administered,cancelled'
+ public function updateStatus(Request $request, VaccineAllocation $allocation)
+{
+    $request->validate([
+        'status' => 'required|in:pending,allocated,issued,administered,cancelled'
+    ]);
+
+    $user = $request->user();
+
+    // 🔹 If approving, set allocated_by to current officer/admin
+    if ($request->status === 'allocated') {
+        $allocation->update([
+            'status' => $request->status,
+            'allocated_by' => $user->id, // ✅ Save who approved
         ]);
-
-        $allocation->update(['status' => $request->status]);
-
-        return response()->json([
-            'message' => '✅ Status updated successfully!',
-            'data' => $allocation,
+    } else {
+        // 🔹 If cancelling or other status, keep status only
+        $allocation->update([
+            'status' => $request->status,
         ]);
     }
+
+    // 🔹 Return with relation (so frontend sees updated user info)
+    $allocation->load('allocatedBy', 'farmer.user', 'farm', 'vaccine', 'animal', 'batch');
+
+    return response()->json([
+        'message' => '✅ Status updated successfully!',
+        'data' => $allocation,
+    ]);
+}
+
 
     /**
      * ✅ Delete allocation
@@ -129,4 +146,11 @@ class VaccineAllocationController extends Controller
             'message' => '🗑️ Allocation deleted successfully.'
         ]);
     }
+    public function pendingCount()
+{
+    $count = \App\Models\VaccineAllocation::where('status', 'pending')->count();
+
+    return response()->json(['count' => $count]);
+}
+
 }

@@ -44,6 +44,10 @@ import OfficerFarmDetails from "./pages/officer/OfficerFarmDetails"; //farmer al
 
 import OfficerFarmers from "./pages/officer/OfficerFarmers";
 import OfficerAnimals from "./pages/officer/OfficerAnimals";
+import OfficerVaccines from "./pages/officer/OfficerVaccines";
+import OfficerAllocations from "./pages/officer/OfficerAllocations";
+import OfficerDisbursements from "./pages/officer/OfficerDisbursements";
+import OfficerReports from "./pages/officer/OfficerReports";
 
 // 🔹 Public layout for Header + nested routes
 function PublicLayout() {
@@ -101,7 +105,13 @@ export default function App() {
         <Route path="/officer/farms" element={<OfficerFarms />} />
         <Route path="/officer/farms/:id" element={<OfficerFarmDetails />} />
         <Route path="/officer/farmers" element={<OfficerFarmers />} />
-         <Route path="/officer/animals" element={<OfficerAnimals />} />         
+        <Route path="/officer/animals" element={<OfficerAnimals />} />  
+        <Route path="/officer/vaccines" element={<OfficerVaccines />} />  
+        <Route path="/officer/allocations" element={<OfficerAllocations />} />  
+        <Route path="/officer/disbursements" element={<OfficerDisbursements />} /> 
+        <Route path="/officer/reports" element={<OfficerReports/>} /> 
+
+                
 
 
 

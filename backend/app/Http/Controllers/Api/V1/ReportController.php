@@ -13,6 +13,27 @@ use App\Models\VaccineBatch;
 class ReportController extends Controller
 {
     public function summary()
+{
+    try {
+        $data = [
+            'total_budget' => (int) \App\Models\Budget::sum('total_amount'),
+            'total_procurement' => (int) \App\Models\VaccineBatch::sum(\DB::raw('quantity * cost_per_unit')),
+            'total_disbursement' => (int) \App\Models\Disbursement::sum('amount'),
+        ];
+
+        $data['remaining'] = $data['total_budget'] - ($data['total_procurement'] + $data['total_disbursement']);
+
+        return response()->json($data, 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error generating budget summary',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+public function allsummary()
     {
         return response()->json([
             'farmers' => Farmer::count(),
@@ -22,6 +43,8 @@ class ReportController extends Controller
             'stock_total_doses' => VaccineBatch::sum('quantity'),
         ]);
     }
+
+
 
 public function financials(Request $request)
 {

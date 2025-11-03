@@ -63,7 +63,7 @@ Route::post('/budgets', [BudgetController::class, 'store']);
 Route::put('/budgets/{budget}', [BudgetController::class, 'update']);
 Route::delete('/budgets/{budget}', [BudgetController::class, 'destroy']);
 Route::put('/budgets/{id}/restore', [BudgetController::class, 'restore']);
-Route::get('/budgets/summary', [BudgetController::class, 'summary']);
+
 
 // Disbursement
 Route::get('/disbursements', [DisbursementController::class, 'index']);
@@ -71,6 +71,8 @@ Route::post('/disbursements', [DisbursementController::class, 'store']);
 Route::put('/disbursements/{disbursement}', [DisbursementController::class, 'update']);
 Route::delete('/disbursements/{disbursement}', [DisbursementController::class, 'destroy']);
 Route::put('/disbursements/{id}/restore', [DisbursementController::class, 'restore']);
+// ✅ New Budget Summary Route (for dashboard or reports)
+Route::get('/budgets/summary', [BudgetController::class, 'summary1']);
 
 });
 
@@ -109,6 +111,8 @@ Route::put('/disbursements/{id}/restore', [DisbursementController::class, 'resto
                         // ✅ Officers/Admin can update allocation status
                         Route::put('/allocations/{allocation}/status', [VaccineAllocationController::class, 'updateStatus']);
 
+                        Route::get('/budgets/summary', [BudgetController::class, 'summary']);
+
                         Route::post('/disbursements', [DisbursementController::class, 'store']);
                         Route::put('/disbursements/{disbursement}', [DisbursementController::class, 'update']);
                         Route::delete('/disbursements/{disbursement}', [DisbursementController::class, 'destroy']);
@@ -124,10 +128,15 @@ Route::put('/disbursements/{id}/restore', [DisbursementController::class, 'resto
     // ✅ Officer pending count route (for sidebar badge)
     Route::get('/officer/disbursements/pending/count', [DisbursementController::class, 'pendingCount']);
 
-    // 👨‍🔬 Officer Profile Update (Self)
+    // 👨🔬 Officer Profile Update (Self)
 Route::put('/officer/profile/update', [OfficerController::class, 'updateProfile']);
 
 Route::get('/farms/{id}/vaccination-summary', [FarmController::class, 'indivisual_vaccinationSummary']);
+
+//COUNT PENDING VACINE REQUEST
+// ✅ Officer pending allocations count
+Route::get('/officer/allocations/pending/count', [VaccineAllocationController::class, 'pendingCount']);
+
 
         });
 
@@ -166,9 +175,13 @@ Route::get('/farms/{id}/vaccination-summary', [FarmController::class, 'indivisua
         Route::get('/budgets', [BudgetController::class, 'index']);
         Route::get('/disbursements', [DisbursementController::class, 'index']);
 
-        Route::get('/reports/summary', [ReportController::class, 'summary']);
+        
+         Route::get('/reports/summary', [ReportController::class, 'summary']);
+         Route::get('/reports/summary1', [ReportController::class, 'allsummary']);
+       
         Route::get('/reports/financials', [ReportController::class, 'financials']);
     });
 });
+
 
 
